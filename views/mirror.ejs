@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="stylesheet" href="/magic.min.css">
+
+    <title>Francisco</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+  </head>
+  <style>
+  html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+  background-color: black
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  line-height: 60px; /* Vertically center the text there */
+  background-color: #000;
+  text-align: 'center',center;
+  color: #fff
+}
+.magictime {
+-webkit-animation-duration: 2s;
+-moz-animation-duration: 2s;
+-o-animation-duration: 2s;
+animation-duration: 2s;
+}
+</style>
+
+  <body>
+
+    <footer class="footer">
+      <div class="container" style="text-align:center">
+        <span id="state">[Ready to Listen]</span>: <span id="status">...</span>
+      </div>
+    </footer>
+    <div id="yt" style="width:1px;height:1px;overflow:hidden"></div>
+
+
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+<script>if (window.module) module = window.module;</script>
+
+<script>
+  var global_id = ''
+  var tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/player_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  var socket = io.connect('http://localhost:3000', {path: '/mirror'});
+  socket.on('STATE', function (data) {
+    document.getElementById('state').innerHTML = '[' + data + ']'
+    //socket.emit('my other event', { my: 'data' });
+  });
+  socket.on('STATUS', function(data) {
+    $('#status').addClass('magictime boingOutDown');
+    document.getElementById('status').innerHTML = data
+    $('#status').addClass('magictime spaceInDown');
+  })
+  socket.on('ERR', function(data) {
+    if(data == 'REFRESH') {
+      location.reload()
+    }
+  })
+  socket.on('PLAY', function(data) {
+    global_id = data
+    player.loadVideoById({videoId: data,
+                     startSeconds:0,
+                     suggestedQuality:'large'})
+    // Replace the 'ytplayer' element with an <iframe> and
+    // YouTube player after the API code downloads.
+  })
+
+  socket.on('PAUSE', function(data) {
+    player.stopVideo();
+  })
+  socket.on('VOLUME', function(data) {
+    console.log(data)
+    player.setVolume(data)
+  })
+
+  var player;
+  function onYouTubePlayerAPIReady() {
+    player = new YT.Player('yt', {
+      height: '360',
+      width: '640',
+      videoId: global_id,
+      playerVars: {
+        autoplay: 1
+      },
+      events: {
+            'onStateChange': onPlayerStateChange
+          }
+    });
+  }
+  function onPlayerStateChange(event) {
+      console.log(event)
+      if(event.data == 0) {
+        socket.emit('PLAYING', false)
+      }
+  }
+
+</script>
+
+</body>
+</html>
