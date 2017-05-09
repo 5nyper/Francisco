@@ -543,8 +543,7 @@ function post(audioBuffer) {
       if (res.statusCode > 204) {
         console.log("ERR with return code " + res.statusCode)
         io.sockets.emit('STATE', 'BAD CODE');
-        refreshToken()
-        reject('BAD CODE')
+        return reject('BAD CODE')
       } else if (res.statusCode == 204) {
         in_session = false
         io.sockets.emit('STATUS', 'No response');
@@ -567,7 +566,6 @@ function post(audioBuffer) {
           let i = 0
           let bodyBuffer_array = []
           multipart.forEach(function(part, index) {
-            //console.log(part)
             var headers = part.headers;
             var bodyBuffer = part.body;
             var contentType = _.get(headers, 'Content-Type');
