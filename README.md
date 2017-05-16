@@ -18,6 +18,7 @@ In Order to clone this repository locally and successfully run Francisco in it's
   - a USB microphone and speakers
   - a Mirror... obviously 
   - Go to developer.amazon.com and create a new device project under AVS and substitute all the parts where it takes `<TOKEN SECRET>` or `<TOKEN CLIENT>` with yours
+  - Then go to your security profile after youve created one and add this link to the `Allowed origin Login` and add `http://localhost:3000/login` then add `http://localhost:3000/authd` in `Allowed Redirect urls`
 
 # Running
 1. After you've gotten those required resources, git clone this repository to your raspberrypi
