@@ -24,5 +24,52 @@ In Order to clone this repository locally and successfully run Francisco in it's
 3. google any error you encounter and fix
 4. run `electron .`, if you encounter and error refer to this: [Issue](https://github.com/Kitt-AI/snowboy/issues/63)
 
+# Adding new internal commands
+Francisco uses AVS for most of this commands, but when a certain hotword is spoken (like `play` since using AVS in development mode does not allow for Music playback) it then switches to internal command functions and the speech is not sent to AVS, let's take a closer look at the `play` internal command.
+
+1. In order to add a new hotword, go to https://snowboy.kitt.ai, record a new hotword and download the .pmdl and add it to the `resources` folder
+2. in the `main.js` file, add this:
+```js
+models.add({
+  file: 'resources/YOUR HOTWORD FILE>.pmdl',
+  sensitivity: '0.5',
+  hotwords: '<YOUR HOTWORD>'
+});
+```
+3. The logic for switching between AVS and internal commands are mostly written, so then you'd just need to figure out what to do according to what `internal_cmd` is equal to:
+```js
+if (internal_cmd == 'play') {
+                speech.recognize('command.wav', conf)
+                  .then((results) => {
+                    const transcription = results[0];
+                    let res;
+                    try {
+                      res = transcription.split('play')[1].trim()
+                      console.log(transcription.split('play')[1].trim());
+                      getYT(transcription.split('play')[1].trim())
+                      in_session = false
+                      io.sockets.emit('VOLUME', 100)
+                      io.sockets.emit('STATE', 'Ready to Listen');
+                      io.sockets.emit('STATUS', 'Listening to ' + transcription.split('play')[1].trim());
+                      setTimeout(function() {
+                        listen()
+                      }, 250);
+                    }
+                    catch (e) {
+                      in_session = false
+                      io.sockets.emit('STATE', 'Ready to Listen');
+                      io.sockets.emit('STATUS', 'Sorry I didnt get that');
+                      setTimeout(function() {
+                        listen()
+                      }, 250);
+                    }
+                  })
+                  .catch((err) => {
+                    console.error('ERROR:', err);
+                  });
+                }
+                ```
+4. Then voila, adding a new command is really up to the programmer, as you can really do anything you want with it once you configure the hotword.
+
 
 #ENJOY
