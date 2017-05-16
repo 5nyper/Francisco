@@ -26,16 +26,32 @@ let player = require('play-sound')(opts = {})
 let {BrowserWindow} = require('electron')
 let mirror = require('electron').app
 let youtube = require('googleapis').youtube({version: 'v3', auth: 'AIzaSyAQ1_wQZjabwGUn1sAwcqKPVmISQd74fbA'})
+let NodeGeocoder = require('node-geocoder');
+
+let options = {
+	provider: 'mapquest',
+
+	// Optional depending on the providers
+	httpAdapter: 'https', // Default
+	apiKey: 'pE8LHQAxQDrilsaWgGfvTwMAGPZU4TMb', // for Mapquest, OpenCage, Google Premier
+	formatter: null // 'gpx', 'string', ...
+};
+
+let geocoder = NodeGeocoder(options);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
+
+
 let win
+
+process.env.GOOGLE_API_KEY = 'AIzaSyAQ1_wQZjabwGUn1sAwcqKPVmISQd74fbA'
 
 function createWindow () {
   const {BrowserWindow} = require('electron')
   let win = new BrowserWindow({width: 800, height: 600, frame: false})
   win.loadURL('http://localhost:3000/mirror')
-  //win.openDevTools()
+  win.openDevTools()
   win.show()
 }
 
@@ -80,6 +96,9 @@ const isStream = stream =>
 	typeof stream === 'object' &&
 	typeof stream.pipe === 'function';
 
+
+// MODELS
+
 models.add({
   file: 'resources/francisco.pmdl',
   sensitivity: '0.44',
@@ -100,6 +119,11 @@ models.add({
   sensitivity: '0.5',
   hotwords: 'stop'
 });
+models.add({
+  file: 'resources/directions to.pmdl',
+  sensitivity: '0.5',
+  hotwords: 'directions to'
+})
 
 
 if (typeof localStorage === "undefined" || localStorage === null) {
@@ -223,7 +247,7 @@ app.get('/mirror', function(req, res) {
             audioGain: 2.0
           });
           detector.on('hotword', function(index, hotword) {
-            //console.log(hotword)
+            console.log(hotword)
             if(hotword == 'stop' && playing_music == true) {
               console.log('IT WOULD STOP')
               playing_music = false
@@ -238,14 +262,37 @@ app.get('/mirror', function(req, res) {
           let cmd = record.start({
             sampleRateHertz: 16000,
             threshold: 0,
-            verbose: true,
           })
-
-          //detector.on('silence')
+          let command_begun = false,
+              time_silence = null,
+              time = new Date()
+          detector.on('silence', function() {
+            if(command_begun && time_silence == null) {
+              time_silence = time.getTime()
+              console.log('SILENTO!')
+            }
+            else if(command_begun && time_silence !== null) {
+              if(((new Date()).getTime()  - time_silence) > 5000) {
+                record.stop()
+                command_begun = false
+              }
+              else {
+                console.log((new Date()).getTime() + ' minus ' + time_silence)
+              }
+            }
+          })
+          detector.on('sound', function () {
+            if(command_begun) {
+              time_silence = null
+            }
+            else
+              command_begun = true
+            console.log('SOUND!')
+          })
 
           cmd.pipe(detector)
           cmd.pipe(file)
-          /*eos(cmd, function(err) {
+          eos(cmd, function(err) {
             if (err) return console.log('stream had an error or closed early');
             let formattedAudioStream = fs.createReadStream('command.wav');
 
@@ -303,6 +350,37 @@ app.get('/mirror', function(req, res) {
                     console.error('ERROR:', err);
                   });
                 }
+                else if(internal_cmd == 'directions to') {
+                  speech.recognize('command.wav', conf)
+                    .then((results) => {
+                      const transcription = results[0];
+                      let res;
+                      try {
+                        res = transcription.split('to')[1].trim()
+                        console.log(transcription.split('to')[1].trim());
+                        geocoder.geocode(res).then(function(result) {
+                          console.log([result[0].latitude, result[0].longitude])
+                          io.sockets.emit('LOCATE', {lat: result[0].latitude, lng: result[0].longitude})
+                        })
+                        in_session = false
+                        io.sockets.emit('STATE', 'Ready to Listen');
+                        setTimeout(function() {
+                          listen()
+                        }, 250);
+                      }
+                      catch (e) {
+                        in_session = false
+                        io.sockets.emit('STATE', 'Ready to Listen');
+                        io.sockets.emit('STATUS', 'Sorry I didnt get that');
+                        setTimeout(function() {
+                          listen()
+                        }, 250);
+                      }
+                    })
+                    .catch((err) => {
+                      console.error('ERROR:', err);
+                    });
+                }
                 else {
                   in_session = false
                   io.sockets.emit('STATE', 'Ready to Listen');
@@ -312,8 +390,8 @@ app.get('/mirror', function(req, res) {
                   }, 250);
                 }
             }
-          });*/
-          setTimeout(function() {
+          });
+          /*setTimeout(function() {
             record.stop()
             let formattedAudioStream = fs.createReadStream('command.wav');
 
@@ -371,6 +449,37 @@ app.get('/mirror', function(req, res) {
                     console.error('ERROR:', err);
                   });
                 }
+                else if(internal_cmd == 'directions to') {
+                  speech.recognize('command.wav', conf)
+                    .then((results) => {
+                      const transcription = results[0];
+                      let res;
+                      try {
+                        res = transcription.split('to')[1].trim()
+                        console.log(transcription.split('to')[1].trim());
+                        geocoder.geocode(res).then(function(result) {
+                          console.log([result[0].latitude, result[0].longitude])
+                          io.sockets.emit('LOCATE', {lat: result[0].latitude, lng: result[0].longitude})
+                        })
+                        in_session = false
+                        io.sockets.emit('STATE', 'Ready to Listen');
+                        setTimeout(function() {
+                          listen()
+                        }, 250);
+                      }
+                      catch (e) {
+                        in_session = false
+                        io.sockets.emit('STATE', 'Ready to Listen');
+                        io.sockets.emit('STATUS', 'Sorry I didnt get that');
+                        setTimeout(function() {
+                          listen()
+                        }, 250);
+                      }
+                    })
+                    .catch((err) => {
+                      console.error('ERROR:', err);
+                    });
+                }
                 else {
                   in_session = false
                   io.sockets.emit('STATE', 'Ready to Listen');
@@ -380,7 +489,7 @@ app.get('/mirror', function(req, res) {
                   }, 250);
                 }
             }
-          }, 6000)
+          }, 6000)*/
         }
 
       function listen() {
@@ -550,7 +659,7 @@ function post(audioBuffer) {
         player.play('204.mp3', function(err) {
           if (err) throw err
         })
-        reject('NO REPSONSE')
+        reject('NO RESPONSE')
       }
       streamToBuffer(res, function(err, buffer) {
         console.log('response', buffer.length);
