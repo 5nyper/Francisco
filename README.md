@@ -68,7 +68,7 @@ if (internal_cmd == 'play') {
                     console.error('ERROR:', err);
                   });
                 }
-                ```
+```
 4. Then voila, adding a new command is really up to the programmer, as you can really do anything you want with it once you configure the hotword.
 
 
