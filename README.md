@@ -17,12 +17,15 @@ In Order to clone this repository locally and successfully run Francisco in it's
   - install ffmpeg from source [Instructions](http://stackoverflow.com/questions/37369330/error-while-installing-ffmpeg-under-raspbian-debian-8-jessie)
   - a USB microphone and speakers
   - a Mirror... obviously 
+  - Go to developer.amazon.com and create a new device project under AVS and substitute all the parts where it takes `<TOKEN SECRET>` or `<TOKEN CLIENT>` with yours
 
 # Running
 1. After you've gotten those required resources, git clone this repository to your raspberrypi
 2. cd to the directory and run `npm install`, now wait a few minutes for all of the dependencies to build
 3. google any error you encounter and fix
 4. run `electron .`, if you encounter and error refer to this: [Issue](https://github.com/Kitt-AI/snowboy/issues/63)
+5. you might encounter a localStorage Error, thats fine
+6. if running successfully, go to `http://localhost:3000/login` to set up once
 
 # Adding new internal commands
 Francisco uses AVS for most of this commands, but when a certain hotword is spoken (like `play` since using AVS in development mode does not allow for Music playback) it then switches to internal command functions and the speech is not sent to AVS, let's take a closer look at the `play` internal command.
@@ -72,4 +75,4 @@ if (internal_cmd == 'play') {
 4. Then voila, adding a new command is really up to the programmer, as you can really do anything you want with it once you configure the hotword.
 
 
-#ENJOY
+# ENJOY
