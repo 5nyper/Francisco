@@ -17,7 +17,7 @@ In Order to clone this repository locally and successfully run Francisco in it's
   - install ffmpeg from source [Instructions](http://stackoverflow.com/questions/37369330/error-while-installing-ffmpeg-under-raspbian-debian-8-jessie)
   - a USB microphone and speakers
   - a Mirror... obviously 
-  - Go to developer.amazon.com and create a new device project under AVS and substitute all the parts where it takes `<TOKEN SECRET>` or `<TOKEN CLIENT>` with yours
+  - Go to developer.amazon.com and create a new device project under AVS and substitute all the parts where it takes `<TOKEN SECRET>` or `<TOKEN CLIENT>` with yours, including the `refreshToken` function
   - Then go to your security profile after youve created one and add this link to the `Allowed origin Login` and add `http://localhost:3000/login` then add `http://localhost:3000/authd` in `Allowed Redirect urls`
 
 # Running
