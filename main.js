@@ -5,8 +5,8 @@ let {
   Models
 } = require('snowboy');
 let speech = require('@google-cloud/speech')({
-  projectId: 'frans-165801',
-  keyFilename: 'serv.json'
+  projectId: '<GOOGLE CLOUD PROJECT ID>',
+  keyFilename: '<GOOGLE CLOUD SERVICE KEY FILE>'
 })
 let express = require('express')
 let app = express()
@@ -25,7 +25,7 @@ let httpParser = require('http-message-parser');
 let player = require('play-sound')(opts = {})
 let {BrowserWindow} = require('electron')
 let mirror = require('electron').app
-let youtube = require('googleapis').youtube({version: 'v3', auth: 'AIzaSyAQ1_wQZjabwGUn1sAwcqKPVmISQd74fbA'})
+let youtube = require('googleapis').youtube({version: 'v3', auth: '<KEY>'})
 let NodeGeocoder = require('node-geocoder');
 
 let options = {
@@ -33,7 +33,7 @@ let options = {
 
 	// Optional depending on the providers
 	httpAdapter: 'https', // Default
-	apiKey: 'pE8LHQAxQDrilsaWgGfvTwMAGPZU4TMb', // for Mapquest, OpenCage, Google Premier
+	apiKey: '<MAPQUEST KEY>', // for Mapquest, OpenCage, Google Premier
 	formatter: null // 'gpx', 'string', ...
 };
 
@@ -45,7 +45,7 @@ let geocoder = NodeGeocoder(options);
 
 let win
 
-process.env.GOOGLE_API_KEY = 'AIzaSyAQ1_wQZjabwGUn1sAwcqKPVmISQd74fbA'
+process.env.GOOGLE_API_KEY = '<GOOGLE API KEY>'
 
 function createWindow () {
   const {BrowserWindow} = require('electron')
@@ -146,7 +146,7 @@ app.get('/', function(req, res) {
 })
 
 app.get('/login', function(req, res) {
-  res.redirect('https://www.amazon.com/ap/oa?client_id=amzn1.application-oa2-client.1d379283314842f59d27688a31622d88&scope=alexa%3Aall&scope_data=%7B%22alexa%3Aall%22%3A%7B%22productID%22%3A%22francisco_1%22%2C%22productInstanceAttributes%22%3A%7B%22deviceSerialNumber%22%3A%221231999%22%7D%7D%7D&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauthd')
+  res.redirect('https://www.amazon.com/ap/oa?client_id=<CLIENT TOKEN>&scope=alexa%3Aall&scope_data=%7B%22alexa%3Aall%22%3A%7B%22productID%22%3A%22<PRODUCT ID>%22%2C%22productInstanceAttributes%22%3A%7B%22deviceSerialNumber%22%3A%221231999%22%7D%7D%7D&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauthd')
 })
 
 app.get('/authd', function(req, res) {
@@ -158,8 +158,8 @@ app.get('/authd', function(req, res) {
       form: {
         grant_type: 'authorization_code',
         code: req.param('code'),
-        client_id: 'amzn1.application-oa2-client.1d379283314842f59d27688a31622d88',
-        client_secret: '478ff3f4c1b828ab59eb8d6d6f5cac80ae96c5741670e9794f9553857d49871c',
+        client_id: '<CLIENT ID>',
+        client_secret: '<CLIENT SECRET>',
         redirect_uri: 'http://localhost:3000/authd'
       }
     }).then((result) => {
@@ -175,8 +175,8 @@ function refreshToken() {
       form: {
         grant_type: 'refresh_token',
         refresh_token: JSON.parse(localStorage.getItem('CREDS')).refresh_token,
-        client_id: 'amzn1.application-oa2-client.1d379283314842f59d27688a31622d88',
-        client_secret: '478ff3f4c1b828ab59eb8d6d6f5cac80ae96c5741670e9794f9553857d49871c',
+        client_id: '<CLIENT ID>',
+        client_secret: '<CLIENT SECRET>',
         redirect_uri: 'http://localhost:3000/authd'
       }
     }).then((result) => {
